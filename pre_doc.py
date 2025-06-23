@@ -62,12 +62,8 @@ def get_available_documents() -> List[dict]:
 
 
 def process_single_document(pdf_path: str) -> Optional[FAISS]:
-    """
-    Xử lý một document duy nhất
-    """
+    """Xử lý một document duy nhất"""
     try:
-        print(f"📄 Đang xử lý: {os.path.basename(pdf_path)}")
-
         # Load PDF
         loader = PyPDFLoader(pdf_path)
         documents = loader.load()
@@ -75,9 +71,9 @@ def process_single_document(pdf_path: str) -> Optional[FAISS]:
         if not documents:
             raise ValueError(f"Không thể đọc nội dung từ file: {pdf_path}")
 
-        # Enhanced text splitting với metadata
+        # Text splitting với metadata
         text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=800,  # Giảm chunk size để tăng precision
+            chunk_size=800,
             chunk_overlap=150,
             separators=["\n\n", "\n", ". ", "! ", "? ", " ", ""],
             length_function=len,
@@ -89,7 +85,7 @@ def process_single_document(pdf_path: str) -> Optional[FAISS]:
         filename = os.path.basename(pdf_path)
 
         for i, doc in enumerate(docs):
-            # Filter out empty or meaningless chunks
+            # Filter out empty chunks
             if len(doc.page_content.strip()) < 50:
                 continue
 
@@ -97,13 +93,8 @@ def process_single_document(pdf_path: str) -> Optional[FAISS]:
             doc.metadata.update({
                 'source_file': filename,
                 'chunk_id': i,
-                'chunk_length': len(doc.page_content),
-                'total_chunks': len(docs)
-            })
+                'chunk_length': len(doc.page_content), })
             enhanced_docs.append(doc)
-
-        print(
-            f"📝 Tạo {len(enhanced_docs)} chunks chất lượng từ {len(docs)} chunks gốc")
 
         # Tạo embeddings
         embeddings = HuggingFaceEmbeddings(
@@ -120,14 +111,9 @@ def process_single_document(pdf_path: str) -> Optional[FAISS]:
             VECTOR_STORES_DIR, f"{filename}_{file_hash}")
         vector_store.save_local(vector_store_path)
 
-        print(
-            f"✅ Đã xử lý thành công {len(documents)} trang, tạo {len(enhanced_docs)} chunks")
-        print(f"💾 Lưu vector store tại: {vector_store_path}")
-
         return vector_store
 
     except Exception as e:
-        print(f"❌ Lỗi xử lý tài liệu {pdf_path}: {e}")
         return None
 
 
@@ -140,10 +126,8 @@ def load_vector_store(vector_store_path: str) -> Optional[FAISS]:
         )
         vector_store = FAISS.load_local(
             vector_store_path, embeddings, allow_dangerous_deserialization=True)
-        print(f"✅ Đã load vector store từ: {vector_store_path}")
         return vector_store
     except Exception as e:
-        print(f"⚠️ Không thể load vector store {vector_store_path}: {e}")
         return None
 
 
@@ -162,19 +146,10 @@ def combine_vector_stores(documents: List[dict]) -> Optional[FAISS]:
                     else:
                         combined_store.merge_from(store)
                     total_docs += 1
-                    print(
-                        f"📚 Đã thêm {doc_info['filename']} vào combined store")
 
-        if combined_store:
-            print(
-                f"✅ Đã kết hợp {total_docs} documents thành combined vector store")
-            return combined_store
-        else:
-            print("❌ Không có vector store nào để kết hợp")
-            return None
+        return combined_store
 
     except Exception as e:
-        print(f"❌ Lỗi kết hợp vector stores: {e}")
         return None
 
 
@@ -183,18 +158,11 @@ def process_all_documents() -> Optional[FAISS]:
     documents = get_available_documents()
 
     if not documents:
-        print("❌ Không tìm thấy document nào trong thư mục documents/")
         return None
-
-    print(f"📋 Tìm thấy {len(documents)} documents:")
-    for doc in documents:
-        status = "✅ Processed" if doc['has_vector_store'] else "⚠️ Not processed"
-        print(f"  - {doc['filename']} ({doc['size_mb']} MB) {status}")
 
     # Xử lý các documents chưa có vector store
     for doc in documents:
         if not doc['has_vector_store']:
-            print(f"\n🔄 Xử lý {doc['filename']}...")
             process_single_document(doc['path'])
 
     # Cập nhật lại danh sách
@@ -213,33 +181,22 @@ def get_default_vector_store() -> Optional[FAISS]:
 
     if len(documents) > 1:
         # Nhiều documents - tạo combined store
-        print("🔄 Có nhiều documents, tạo combined vector store...")
         return process_all_documents()
     elif len(documents) == 1:
         # Một document duy nhất
         doc = documents[0]
         if doc['has_vector_store']:
-            print(f"📄 Sử dụng vector store của {doc['filename']}")
             return load_vector_store(doc['vector_store_path'])
         else:
-            print(f"🔄 Xử lý document {doc['filename']}...")
             return process_single_document(doc['path'])
     else:
         # Không có document nào - check fallback
         fallback_path = os.path.join(VECTOR_STORES_DIR, "doan3_index")
         if os.path.exists(fallback_path):
-            print("📄 Sử dụng vector store cũ (doan3)")
             return load_vector_store(fallback_path)
         else:
-            print("❌ Không tìm thấy document nào")
             return None
 
 
 # Khởi tạo vector store mặc định
-print("🚀 Đang khởi tạo vector store system...")
 vector_store = get_default_vector_store()
-
-if vector_store is None:
-    print("❌ Không thể khởi tạo vector store")
-else:
-    print("✅ Vector store system sẵn sàng")

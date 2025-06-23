@@ -1,18 +1,37 @@
-# Hệ thống Chatbot RAG - Quản lý File và Tra cứu Thông tin
+# Hệ thống Chatbot RAG Multi-Document - Quản lý và Tra cứu Thông tin
 
 ## 🎯 Mô tả Dự án
 
-Hệ thống chatbot sử dụng RAG (Retrieval-Augmented Generation) để tra cứu thông tin từ tài liệu PDF với giao diện web thân thiện.
+Hệ thống chatbot sử dụng RAG (Retrieval-Augmented Generation) để tra cứu thông tin từ nhiều tài liệu PDF với giao diện web thân thiện và khả năng quản lý tài liệu linh hoạt.
 
-## ✨ Tính năng
+## ✨ Tính năng Chính
 
-- 📄 Upload và xử lý file PDF tự động
-- 🔍 Tìm kiếm thông tin thông minh bằng vector similarity
-- 🤖 2 tùy chọn AI model:
-  - **OpenAI GPT** (chất lượng cao, có phí)
-  - **Hugging Face** (miễn phí, local processing)
-- 🎨 Giao diện web đẹp với Streamlit
-- 💾 Cache vector embeddings để tái sử dụng
+### � Quản lý Multi-Document
+
+- **Upload PDF qua giao diện web** - Kéo thả hoặc chọn file
+- **Xử lý tự động** - Tạo vector store ngay sau khi upload
+- **Quản lý linh hoạt** - Xem, xóa, rebuild từng tài liệu
+- **Kết hợp thông minh** - Tìm kiếm trên nhiều tài liệu cùng lúc
+
+### 🔍 Tìm kiếm Thông minh
+
+- **Vector similarity search** - Tìm kiếm ngữ nghĩa chính xác
+- **Multi-source retrieval** - Kết hợp thông tin từ nhiều nguồn
+- **Source tracking** - Hiển thị nguồn tham khảo chi tiết
+- **Relevance filtering** - Lọc kết quả có liên quan
+
+### 🤖 AI Models
+
+- **OpenAI GPT** - Chất lượng cao, trả lời chi tiết
+- **Google Gemini** - Miễn phí, hiệu suất tốt
+- **Auto-fallback** - Tự động chuyển đổi khi cần
+
+### 🎨 Giao diện Thân thiện
+
+- **Streamlit modern UI** - Giao diện đẹp, responsive
+- **Real-time feedback** - Cập nhật trạng thái tức thì
+- **Progress tracking** - Hiển thị tiến trình xử lý
+- **Statistics dashboard** - Thống kê tài liệu và usage
 
 ## 🚀 Cài đặt Nhanh
 
@@ -50,8 +69,9 @@ pip install -r requirements.txt
 
 ### 1. File PDF
 
-- Đặt file PDF cần tra cứu vào thư mục dự án
-- Đặt tên file là `doan3.pdf` hoặc sửa tên trong `pre_doc.py`
+- Đặt file PDF cần tra cứu vào thư mục `documents/`
+- Hoặc upload trực tiếp qua giao diện web
+- Hỗ trợ nhiều file PDF cùng lúc
 
 ### 2. API Keys (Tùy chọn)
 
@@ -61,8 +81,8 @@ Sửa file `config.env`:
 # Để sử dụng OpenAI (có phí)
 OPENAI_API_KEY=sk-your-actual-openai-api-key-here
 
-# Để sử dụng Hugging Face (miễn phí)
-# Không cần cấu hình gì thêm
+# Để sử dụng Google Gemini (miễn phí)
+GEMINI_API_KEY=your-actual-gemini-api-key-here
 ```
 
 ## 🎮 Sử dụng
@@ -76,9 +96,18 @@ streamlit run app.py
 ### Sử dụng
 
 1. Mở trình duyệt tại `http://localhost:8501`
-2. Chọn model AI trong sidebar
-3. Nhập câu hỏi về nội dung tài liệu
-4. Xem kết quả và nguồn tham khảo
+2. **Upload tài liệu**: Sử dụng tab "📚 Tài liệu" trong sidebar để upload PDF
+3. **Chọn model AI** trong tab "🔧 Model"
+4. **Nhập câu hỏi** về nội dung tài liệu
+5. **Xem kết quả** và nguồn tham khảo chi tiết
+
+### Quản lý Tài liệu
+
+- **Upload**: Kéo thả file PDF vào giao diện
+- **Xử lý**: Hệ thống tự động tạo vector store
+- **Xem trạng thái**: Kiểm tra tài liệu nào đã được xử lý
+- **Xóa**: Loại bỏ tài liệu không cần thiết
+- **Rebuild**: Tái tạo toàn bộ vector store
 
 ## 💰 Chi phí
 
@@ -89,11 +118,11 @@ streamlit run app.py
 - 1 câu hỏi ≈ 200-500 tokens
 - Chi phí thực tế: ~$0.001-0.005/câu hỏi
 
-### Hugging Face
+### Google Gemini API
 
-- **Hoàn toàn miễn phí**
-- Chạy local trên máy tính
-- Không cần internet sau khi tải model
+- **Miễn phí** với quota hàng tháng
+- Quota: 15 requests/phút, 1500 requests/ngày
+- Không cần thanh toán cho sử dụng cơ bản
 
 ## 📋 Luồng Hoạt động Hệ thống
 
@@ -240,17 +269,17 @@ llm_chatbot_genAI/
 ├── app.py              # Giao diện Streamlit chính
 ├── llm_rag.py          # Engine RAG và xử lý LLM
 ├── pre_doc.py          # Tiền xử lý tài liệu PDF
-├── test_system.py      # Test và validation
 ├── requirements.txt    # Python dependencies
 ├── config.env          # Cấu hình API keys
 ├── setup.bat           # Setup script cho Windows
 ├── setup.sh            # Setup script cho Linux/Mac
-├── doan3.pdf           # Tài liệu PDF nguồn
-├── .gitignore          # Git ignore patterns
-├── faiss_index/        # Cache vector embeddings
-│   ├── index.faiss     # FAISS vector database
-│   └── index.pkl       # Metadata và configuration
-└── __pycache__/        # Python compiled files
+├── documents/          # Thư mục chứa các file PDF
+│   ├── doan3.pdf       # File PDF mẫu
+│   └── kb_dbms.pdf     # File PDF khác
+├── vector_stores/      # Cache vector embeddings
+│   ├── doan3.pdf_12345/ # Vector store cho file 1
+│   └── kb_dbms.pdf_67890/ # Vector store cho file 2
+└── .gitignore          # Git ignore patterns
 ```
 
 ## 🛠️ Khắc phục Sự cố
@@ -287,12 +316,17 @@ pip install --upgrade langchain langchain-community
 
 ## 🔮 Phát triển tiếp
 
-- [ ] Hỗ trợ nhiều định dạng file (DOCX, TXT)
-- [ ] Upload file qua web interface
-- [ ] Chat history
+- [x] Hỗ trợ nhiều file PDF
+- [x] Upload file qua web interface
+- [x] Quản lý tài liệu linh hoạt
+- [x] Multi-document search
+- [ ] Hỗ trợ DOCX, TXT, CSV
+- [ ] Chat history và session
 - [ ] Multi-language support
-- [ ] API endpoints
-- [ ] Database integration
+- [ ] API endpoints RESTful
+- [ ] Database integration (PostgreSQL)
+- [ ] User authentication
+- [ ] Advanced analytics dashboard
 
 ## 📝 License
 
